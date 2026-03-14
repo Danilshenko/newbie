@@ -2,25 +2,31 @@ import './apiRequest.css'
 
 function ApiRequest(){
 
-    async function getPost(){
-        const response =  await fetch('./users.db');
-        const data = await response.json();
-        console.log(data);
+    async function getUsers(){
+        try{
+            const response = await fetch('https://linsey-torporific-peevishly.ngrok-free.dev/users')
+            if(!response.ok) throw new Error('Ошибка сети');
+            const data = await response.json();
+            console.log(data);
+        }catch(error){
+            console.error(error);
+        }
     }
 
-    function handleChanhe(e){
+    function handleChange(e){
         console.log(e.target.value);
     }
 
     return(
         <div className="main-block">
             <div className='form-block'>
-            <input className='form' onChange={(e) => handleChanhe(e)}/>
-            <button 
-            className="click-request"
-            onClick={() => getPost()}
-            >Click
-            </button>
+                <input className='form' 
+                onChange={handleChange}/>
+                <button 
+                className="click-request"
+                onClick={getUsers}
+                >Click
+                </button>
             </div>
         </div>
     )
