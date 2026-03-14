@@ -1,0 +1,21 @@
+.main-block{
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items:center;
+}
+.form-block{
+    display: block;
+    
+}
+.click-request{
+    width: 100px;
+    height: 40px;
+    background-color: transparent;
+    color: black;
+    border: 1px solid ;
+    border-radius: 5px;
+    margin-top: auto;
+    margin-bottom: auto;
+}

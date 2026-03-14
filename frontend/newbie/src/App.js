@@ -1,5 +1,5 @@
 import './App.css';
-import ApiRequest from './ApiRequest/ApiRequest';
+import ApiRequest from './Component/ApiRequest/ApiRequest';
 
 function App() {
   return (
