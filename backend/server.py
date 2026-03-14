@@ -29,7 +29,8 @@ def register():
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
     try:
-        cursor.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username,email, password))
+        cursor.execute('INSERT INTO users (username, password , email) VALUES (?, ?, ?)', 
+                       (username, password, email))
         conn.commit()
         return jsonify({"status": "success", "message": f"Пользователь {username} сохранен!"})
     except Exception as e:
@@ -37,16 +38,29 @@ def register():
     finally:
         conn.close()
 
-@app.route('/users')
-def get_users():
-   
+@app.route('/user/<name>')
+def get_user_profile(name):
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
-    cursor.execute('SELECT username FROM users')
-    users = cursor.fetchall()
+    
+    cursor.execute('SELECT username, password, email FROM users WHERE username = ?', (name,))
+    
+    user = cursor.fetchone()
     conn.close()
-    return jsonify(users)
+
+    if user:
+        #кортеж
+        return jsonify({
+            "status": "success",
+            "data": {
+                "username": user[0],
+                "password": user[1],
+                "email": user[2]
+            }
+        })
+    else:
+        return jsonify({"status": "error", "message": "Пользователь не найден"}), 404
 
 if __name__ == '__main__':
     init_db()  
-    app.run(debug=True, port=5000)
+    app.run(debug=True,host='0.0.0.0', port=5000)
