@@ -62,18 +62,22 @@ def add_user():
     if not data or not isinstance(data, dict):
         return jsonify({"status": "error", "message": "JSON required"}), 400
 
-    username = data.get('username')
-    password = data.get('password')
-    email = data.get('email')
+    u_val = data.get('username')
+    p_val = data.get('password')
+    e_val = data.get('email')
 
-    if not username or not password or not email:
+    if u_val is None or p_val is None or e_val is None:
         return jsonify({"status": "error", "message": "Missing fields"}), 400
+
+    username = str(u_val)
+    password = str(p_val)
+    email = str(e_val)
 
     try:
         conn = sqlite3.connect('users.db')
         cursor = conn.cursor()
         cursor.execute('INSERT INTO users (username, password, email) VALUES (?, ?, ?)', 
-                       (str(username), str(password), str(email)))
+                       (username, password, email))
         conn.commit()
         conn.close()
         
