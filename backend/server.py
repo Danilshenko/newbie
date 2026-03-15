@@ -44,9 +44,9 @@ def get_users():
         user_list = []
         for u in users:
             user_list.append({
-                "username": u[0],
-                "password": u[1],
-                "email": u[2]
+                "username": str(u[0]),
+                "password": str(u[1]),
+                "email": str(u[2])
             })
         return jsonify({"status": "success", "data": user_list})
     except Exception as e:
@@ -54,17 +54,20 @@ def get_users():
 
 @app.route('/users', methods=['POST'])
 def add_user():
-    data = request.get_json(silent=True)
+    try:
+        data = request.get_json(force=True, silent=True)
+    except:
+        return jsonify({"status": "error", "message": "Invalid JSON"}), 400
     
-    if not data:
-        return jsonify({"status": "error", "message": "Данные не получены или не являются JSON"}), 400
+    if not data or not isinstance(data, dict):
+        return jsonify({"status": "error", "message": "JSON required"}), 400
 
     username = data.get('username')
     password = data.get('password')
     email = data.get('email')
 
     if not username or not password or not email:
-        return jsonify({"status": "error", "message": "Заполните все поля: username, password, email"}), 400
+        return jsonify({"status": "error", "message": "Missing fields"}), 400
 
     try:
         conn = sqlite3.connect('users.db')
@@ -76,17 +79,17 @@ def add_user():
         
         return jsonify({
             "status": "success", 
-            "message": f"Пользователь {username} успешно сохранен!"
+            "message": f"User {username} saved"
         }), 201
     except Exception as e:
-        return jsonify({"status": "error", "message": f"Ошибка базы данных: {str(e)}"}), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/user/<name>')
 def get_user_profile(name):
     try:
         conn = sqlite3.connect('users.db')
         cursor = conn.cursor()
-        cursor.execute('SELECT username, password, email FROM users WHERE username = ?', (name,))
+        cursor.execute('SELECT username, password, email FROM users WHERE username = ?', (str(name),))
         user = cursor.fetchone()
         conn.close()
 
@@ -94,12 +97,12 @@ def get_user_profile(name):
             return jsonify({
                 "status": "success",
                 "data": {
-                    "username": user[0],
-                    "password": user[1],
-                    "email": user[2]
+                    "username": str(user[0]),
+                    "password": str(user[1]),
+                    "email": str(user[2])
                 }
             })
-        return jsonify({"status": "error", "message": "Пользователь не найден"}), 404
+        return jsonify({"status": "error", "message": "Not found"}), 404
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
