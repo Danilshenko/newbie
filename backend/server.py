@@ -62,31 +62,32 @@ def add_user():
     if not data or not isinstance(data, dict):
         return jsonify({"status": "error", "message": "JSON required"}), 400
 
-    u_val = data.get('username')
-    p_val = data.get('password')
-    e_val = data.get('email')
+    username_val = data.get('username', '')
+    password_val = data.get('password', '')
+    email_val = data.get('email', '')
 
-    if u_val is None or p_val is None or e_val is None:
+    if not username_val or not password_val or not email_val:
         return jsonify({"status": "error", "message": "Missing fields"}), 400
-
-    username = str(u_val)
-    password = str(p_val)
-    email = str(e_val)
 
     try:
         conn = sqlite3.connect('users.db')
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO users (username, password, email) VALUES (?, ?, ?)', 
-                       (username, password, email))
+        
+        # Самое надежное приведение к строке
+        u = format(username_val)
+        p = format(password_val)
+        e = format(email_val)
+        
+        cursor.execute('INSERT INTO users (username, password, email) VALUES (?, ?, ?)', (u, p, e))
         conn.commit()
         conn.close()
         
         return jsonify({
             "status": "success", 
-            "message": f"User {username} saved"
+            "message": f"User {u} saved"
         }), 201
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+    except Exception as err:
+        return jsonify({"status": "error", "message": f"Error binding parameter: {str(err)}"}), 500
 
 @app.route('/user/<name>')
 def get_user_profile(name):
