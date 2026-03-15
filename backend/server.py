@@ -6,9 +6,11 @@ import os
 app = Flask(__name__)
 CORS(app)
 
+# Инициализация базы данных
 def init_db():
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
+    # Создаем таблицу с полями id, username, password и email
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -20,6 +22,7 @@ def init_db():
     conn.commit()
     conn.close()
 
+# 1. Главная страница
 @app.route('/')
 def home():
     return jsonify({
@@ -32,6 +35,7 @@ def home():
         }
     })
 
+# 2. Получение всех пользователей
 @app.route('/users', methods=['GET'])
 def get_users():
     conn = sqlite3.connect('users.db')
@@ -43,6 +47,7 @@ def get_users():
     user_list = [{"username": u[0], "password": u[1], "email": u[2]} for u in users]
     return jsonify({"status": "success", "data": user_list})
 
+# 3. Регистрация нового пользователя
 @app.route('/users', methods=['POST'])
 def add_user():
     data = request.get_json()
@@ -68,6 +73,7 @@ def add_user():
     finally:
         conn.close()
 
+# 4. Профиль конкретного пользователя
 @app.route('/user/<name>')
 def get_user_profile(name):
     conn = sqlite3.connect('users.db')
@@ -85,9 +91,11 @@ def get_user_profile(name):
                 "email": user[2]
             }
         })
-    return jsonify({"status": "error", "message": "User not found"}), 404 
+    return jsonify({"status": "error", "message": "User not found"}), 404
 
+# Блок запуска
 if __name__ == '__main__':
     init_db()
+    # Используем порт из переменной окружения для Render или 5000 для локалки
     port = int(os.environ.get("PORT", 5000))
     app.run(debug=True, host='0.0.0.0', port=port)
