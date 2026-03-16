@@ -27,6 +27,17 @@ function Login(){
         } 
     }
 
+    // async function getUsers(){
+    //     try{
+    //         const response = await fetch('https://newbie-9.onrender.com/users')
+    //         if(!response.ok) throw new Error('Ошибка сети');
+    //         const data = await response.json();
+    //         console.log(data);
+    //     }catch(error){
+    //         console.error(error);
+    //     }
+    // }
+
     return(
         <div className="main-block">
             <div className='register-block'>
