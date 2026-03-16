@@ -9,13 +9,28 @@ function Register(){
     const [email, setEmail] = useState('');
 
     function changeUsername(e){
-        setUsername(e.target.value);
-    }
-    function changePassword(e){
-        setPassword(e.target.value);
+        const result = e.target.value
+        if(result.length <= 20){
+            setUsername(e.target.value);
+        } else{
+            toast.error("Nickname is more than 20 characters long")
+        }
     }
     function changeEmail(e){
-        setEmail(e.target.value);
+        const result = e.target.value
+        if(result.length <= 15){
+            setEmail(e.target.value);
+        }else{
+            toast.error("Email is more than 15 characters long")
+        }
+    }
+    function changePassword(e){ 
+        const result = e.target.value
+        if(result.length <= 30){
+            setPassword(e.target.value);
+        }else{
+            toast.error("Password is more than 30 characters long")
+        }
     }
 
     // async function getUsers(){
