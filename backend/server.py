@@ -1,46 +1,47 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 import sqlite3
 import os
 
-app = Flask(__name__)
-CORS(app)
+app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def init_db():
     conn = sqlite3.connect("users.db")
     cursor = conn.cursor()
-    cursor.execute(
-        """
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL,
+            username TEXT NOT NULL UNIQUE,
             password TEXT NOT NULL,
-            email TEXT
+            email TEXT NOT NULL UNIQUE
         )
-    """
-    )
+    """)
     conn.commit()
     conn.close()
 
+init_db()
 
-@app.route("/")
-def home():
-    return jsonify(
-        {
-            "status": "success",
-            "message": "Backend is running!",
-            "endpoints": {
-                "all_users": "/users (GET)",
-                "register": "/users (POST)",
-                "profile": "/user/<name> (GET)",
-            },
+@app.get("/")
+async def home():
+    return {
+        "status": "success",
+        "message": "FastAPI backend is running!",
+        "endpoints": {
+            "all_users": "/users (GET)",
+            "register": "/users (POST)",
+            "profile": "/user/{name} (GET)"
         }
-    )
+    }
 
-
-@app.route("/users", methods=["GET"])
-def get_users():
+@app.get("/users")
+async def get_users():
     try:
         conn = sqlite3.connect("users.db")
         cursor = conn.cursor()
@@ -48,86 +49,62 @@ def get_users():
         users = cursor.fetchall()
         conn.close()
 
-        user_list = []
-        for u in users:
-            user_list.append(
-                {"username": str(u[0]), "password": str(u[1]), "email": str(u[2])}
-            )
-        return jsonify({"status": "success", "data": user_list})
+        return {
+            "status": "success", 
+            "data": [{"username": u[0], "password": u[1], "email": u[2]} for u in users]
+        }
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/users")
+async def add_user(request: Request):
+    data = await request.json()
+    
+    u = str(data.get("username", "")).strip()
+    p = str(data.get("password", "")).strip()
+    e = str(data.get("email", "")).strip()
 
-@app.route("/users", methods=["POST"])
-def add_user():
+    if not u or not p or not e:
+        raise HTTPException(status_code=400, detail="Все поля должны быть заполнены")
+
+    conn = sqlite3.connect("users.db")
+    cursor = conn.cursor()
+    
     try:
-        data = request.get_json(force=True, silent=True)
-    except:
-        return jsonify({"status": "error", "message": "Invalid JSON"}), 400
-
-    if not data or not isinstance(data, dict):
-        return jsonify({"status": "error", "message": "JSON required"}), 400
-
-    username_val = data.get("username", "")
-    password_val = data.get("password", "")
-    email_val = data.get("email", "")
-
-    if not username_val or not password_val or not email_val:
-        return jsonify({"status": "error", "message": "Missing fields"}), 400
-
-    try:
-        conn = sqlite3.connect("users.db")
-        cursor = conn.cursor()
-
-        u = str(username_val)
-        p = str(password_val)
-        e = str(email_val)
-
         cursor.execute(
             "INSERT INTO users (username, password, email) VALUES (?, ?, ?)", (u, p, e)
         )
         conn.commit()
-        conn.close()
-
-        return jsonify({"status": "success", "message": f"User {u} saved"}), 201
+        return {"status": "success", "message": f"Пользователь {u} сохранен"}, 201
+    except sqlite3.IntegrityError as err:
+        error_msg = str(err).lower()
+        if "username" in error_msg:
+            raise HTTPException(status_code=400, detail="это мой гриб я его ем!!")
+        elif "email" in error_msg:
+            raise HTTPException(status_code=400, detail="пидор ты ебаный!!")
+        else:
+            raise HTTPException(status_code=400, detail="Данные уже существуют")
     except Exception as err:
-        return (
-            jsonify(
-                {"status": "error", "message": f"Error binding parameter: {str(err)}"}
-            ),
-            500,
-        )
-
-
-@app.route("/user/<name>")
-def get_user_profile(name):
-    try:
-        conn = sqlite3.connect("users.db")
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT username, password, email FROM users WHERE username = ?",
-            (str(name),),
-        )
-        user = cursor.fetchone()
+        raise HTTPException(status_code=500, detail=str(err))
+    finally:
         conn.close()
 
-        if user:
-            return jsonify(
-                {
-                    "status": "success",
-                    "data": {
-                        "username": str(user[0]),
-                        "password": str(user[1]),
-                        "email": str(user[2]),
-                    },
-                }
-            )
-        return jsonify({"status": "error", "message": "Not found"}), 404
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+@app.get("/user/{name}")
+async def get_user_profile(name: str):
+    conn = sqlite3.connect("users.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT username, password, email FROM users WHERE username = ?", (name,))
+    user = cursor.fetchone()
+    conn.close()
 
+    if user:
+        return {
+            "status": "success",
+            "data": {"username": user[0], "password": user[1], "email": user[2]}
+        }
+    raise HTTPException(status_code=404, detail="Пользователь не найден")
 
 if __name__ == "__main__":
-    init_db()
-    port = int(os.environ.get("PORT", 5000))
-    app.run(debug=True, host="0.0.0.0", port=port)
+    import uvicorn
+    port = int(os.environ.get("PORT", 10000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
