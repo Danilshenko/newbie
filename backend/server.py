@@ -70,6 +70,10 @@ async def add_user(request: Request):
 
     if not u or not p or not e:
         raise HTTPException(status_code=400, detail="Заполните все поля!")
+    if len(p) < 6:
+        raise HTTPException(status_code=400, detail="Минимум 6 символов!")  
+    if "@" not in e or "." not in e:
+        raise HTTPException(status_code=400, detail="Неправильный емейл!")
 
     conn = get_db_connection()
     cursor = conn.cursor()
