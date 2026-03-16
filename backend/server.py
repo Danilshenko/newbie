@@ -108,7 +108,7 @@ async def get_users():
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
-        cursor.execute("SELECT username, email FROM users")
+        cursor.execute("SELECT username,password,email FROM users")
         users = cursor.fetchall()
         return {"status": "success", "data": users}
     except Exception as e:
