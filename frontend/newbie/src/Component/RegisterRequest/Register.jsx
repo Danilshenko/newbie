@@ -58,17 +58,17 @@ function Register(){
                 </div>
                 <div className='form-block'>
                     <div className='input-group'>
-                    <img src='./icons/User.svg' alt='icon'/>
+                    <img src='/icons/User.svg' alt='icon'/>
                     <input className='username-form'  
                     onChange={changeUsername} placeholder='Username'/>
                     </div>
                     <div className='input-group'>
-                    <img src='./icons/Email.svg' alt='icon'/>
+                    <img src='/icons/Email.svg' alt='icon'/>
                     <input className='email-form' 
                     onChange={changeEmail} placeholder='Email'/>
                     </div>
                     <div className='input-group'>
-                    <img src='./icons/Password.svg' alt='icon'/>
+                    <img src='/icons/Password.svg' alt='icon'/>
                     <input className='password-form' 
                     onChange={changePassword} placeholder='Password'/>
                     </div>
