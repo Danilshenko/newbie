@@ -18,3 +18,7 @@
   font-weight: 700;
   font-style: normal;
 }
+
+.Toastify__toast-container {
+  z-index: 9999;
+}

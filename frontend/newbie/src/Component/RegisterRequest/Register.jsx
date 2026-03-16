@@ -1,4 +1,6 @@
-import './registerRequest.css';
+import './styleForm.css';
+import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { useState } from 'react';
 
 function Register(){
@@ -16,25 +18,34 @@ function Register(){
         setEmail(e.target.value);
     }
 
-    async function getUsers(){
-        try{
-            const response = await fetch('https://newbie-7.onrender.com/users')
-            if(!response.ok) throw new Error('Ошибка сети');
-            const data = await response.json();
-            console.log(data);
-        }catch(error){
-            console.error(error);
-        }
-    }
+    // async function getUsers(){
+    //     try{
+    //         const response = await fetch('https://newbie-9.onrender.com/users')
+    //         if(!response.ok) throw new Error('Ошибка сети');
+    //         const data = await response.json();
+    //         console.log(data);
+    //     }catch(error){
+    //         console.error(error);
+    //     }
+    // }
 
     async function postUsers(){
-        const response = await fetch('https://newbie-7.onrender.com/users', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({username: {username}, password: {password}, email: {email}})
-        })
-        const data = await response.json();
-        console.log(data)
+        try{
+            const response = await fetch('https://newbie-9.onrender.com/users', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username, password, email})
+            })
+            const data = await response.json();
+            if(response.ok){
+                toast.success("Register Compited");
+            } else{
+                toast.error("A user with this nickname or email already exists.")
+            }
+            console.log(data)
+        }catch(err){
+            toast.warning("No connection to the server")
+        }
     }
 
     return(
@@ -47,18 +58,18 @@ function Register(){
                 </div>
                 <div className='form-block'>
                     <div className='input-group'>
-                    <img src='./icons/User.svg' alt='icon'/>
+                    <img src='/icons/User.svg' alt='icon'/>
                     <input className='username-form'  
                     onChange={changeUsername} placeholder='Username'/>
                     </div>
                     <div className='input-group'>
-                    <img src='./icons/Email.svg' alt='icon'/>
-                    <input className='password-form' 
+                    <img src='/icons/Email.svg' alt='icon'/>
+                    <input className='email-form' 
                     onChange={changeEmail} placeholder='Email'/>
                     </div>
                     <div className='input-group'>
-                    <img src='./icons/Password.svg' alt='icon'/>
-                    <input className='email-form' 
+                    <img src='/icons/Password.svg' alt='icon'/>
+                    <input className='password-form' 
                     onChange={changePassword} placeholder='Password'/>
                     </div>
                     <button 
@@ -66,7 +77,7 @@ function Register(){
                     onClick={postUsers}>Register</button>
                     <div className="auth-footer">
                         <span>Already have an account?</span>
-                        <a className="footer-btn" href='/login'>Log in</a>
+                        <Link className="footer-btn" to='/login'>Log in</Link>
                     </div>
                 </div>
             </div>
