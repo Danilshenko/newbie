@@ -80,20 +80,18 @@ async def add_user(request: Request):
 async def login(request: Request):
     """Вход и выдача токена"""
     data = await request.json()
-    u = data.get("username")
+    u = data.get("email")
     p = data.get("password")
 
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
-        cursor.execute("SELECT * FROM users WHERE username = %s", (u,))
+        cursor.execute("SELECT * FROM users WHERE email = %s", (u,))
         user = cursor.fetchone()
 
-        # Проверяем пароль
         if not user or user["password"] != p:
             raise HTTPException(status_code=401, detail="Неверный логин или пароль")
 
-        # Генерируем токен
         token = create_access_token(u)
         return {"status": "success", "access_token": token, "token_type": "bearer"}
     finally:
