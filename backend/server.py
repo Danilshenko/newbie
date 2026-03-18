@@ -117,12 +117,16 @@ async def get_users():
 
 @app.post("/click")
 async def add_click(request: Request):
+
     auth_header = request.headers.get("Authorization")
 
-    if not auth_header:
-        raise HTTPException(status_code=401, detail="Нужен токен")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Токен хуевый или отсутствует")
+
+    conn = None
 
     try:
+
         token = auth_header.split(" ")[1]
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_email = payload.get("sub")
@@ -130,16 +134,33 @@ async def add_click(request: Request):
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-        conn.commit()
-        return {"status": "success"}
+        cursor.execute("SELECT basket FROM users WHERE email = %s", (user_email,))
+        result = cursor.fetchone()
 
+        basket = result["basket"] if result and result["basket"] is not None else []
+
+        new_event = {"action": "click", "time": datetime.now().isoformat()}
+        basket.append(new_event)
+
+        cursor.execute(
+            "UPDATE users SET basket = %s WHERE email = %s",
+            (json.dumps(basket), user_email),
+        )
+        conn.commit()
+        cursor.close()
+
+        return {"status": "success", "current_basket": basket}
+
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="нету такого токена")
     except Exception as e:
-        print(f"Произошла ошибка: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка на сервере")
+        if conn:
+            conn.rollback()
+        print(f"Ошибка сервера: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка Базы: {str(e)}")
 
     finally:
-        if "conn" in locals():
-            cursor.close()
+        if conn:
             conn.close()
 
 
