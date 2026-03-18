@@ -164,6 +164,40 @@ async def add_click(request: Request):
             conn.close()
 
 
+@app.get("/me")
+async def get_me(request: Request):
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="нужна авторизация")
+    try:
+        token = token = auth_header.split(" ")[1]
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_email = payload.get("sub")
+    except:
+        raise HTTPException(status_code=401, detail="сессия закончилась, войдите снова")
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+
+        cursor.execute(
+            "SELECT username, email, clicks, basket FROM users WHERE email = %s",
+            (user_email,),
+        )
+        user_data = cursor.fetchone()
+
+        if not user_data:
+            raise HTTPException(status_code=404, detail="Юзер не найден")
+        return {
+            "status": "success",
+            "username": user_data["username"],
+            "clicks": user_data["clicks"],
+            "basket": user_data["basket"],
+        }
+    finally:
+        cursor.close()
+        conn.close()
+
+
 if __name__ == "__main__":
     import uvicorn
 
