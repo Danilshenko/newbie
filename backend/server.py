@@ -6,8 +6,8 @@ import os
 import time
 import jwt
 from datetime import datetime, timedelta
+import json
 
-# --- НАСТРОЙКИ ---
 SECRET_KEY = os.environ.get("SECRET_KEY", "your-secret-key-123")
 ALGORITHM = "HS256"
 DATABASE_URL = os.environ.get("DATABASE_URL")
@@ -21,16 +21,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
 
 def get_db_connection():
     """Подключение к базе (теперь оно работает, а не pass)"""
     try:
-        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+        conn = psycopg2.connect(DATABASE_URL, sslmode="require")
         return conn
     except Exception as e:
         print(f"Ошибка базы: {e}")
         raise HTTPException(status_code=500, detail="Ошибка подключения к БД")
+
 
 def create_access_token(username: str):
     expire = datetime.utcnow() + timedelta(hours=24)
@@ -42,6 +42,7 @@ def create_access_token(username: str):
 @app.get("/")
 async def home():
     return {"status": "online", "message": "Backend is running"}
+
 
 @app.post("/users")
 async def add_user(request: Request):
@@ -65,7 +66,7 @@ async def add_user(request: Request):
     try:
         cursor.execute(
             "INSERT INTO users (username, password, email) VALUES (%s, %s, %s)",
-            (u, p, e)
+            (u, p, e),
         )
         conn.commit()
         return {"status": "success", "message": "Пользователь создан"}
@@ -75,6 +76,7 @@ async def add_user(request: Request):
     finally:
         cursor.close()
         conn.close()
+
 
 @app.post("/login")
 async def login(request: Request):
@@ -98,6 +100,7 @@ async def login(request: Request):
         cursor.close()
         conn.close()
 
+
 @app.get("/users")
 async def get_users():
     """Проверка списка пользователей"""
@@ -111,7 +114,37 @@ async def get_users():
         cursor.close()
         conn.close()
 
+
+@app.post("/click")
+async def add_click(request: Request):
+    auth_header = request.headers.get("Authorization")
+
+    if not auth_header:
+        raise HTTPException(status_code=401, detail="Нужен токен")
+
+    try:
+        token = auth_header.split(" ")[1]
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_email = payload.get("sub")
+
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        conn.commit()
+        return {"status": "success"}
+
+    except Exception as e:
+        print(f"Произошла ошибка: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка на сервере")
+
+    finally:
+        if "conn" in locals():
+            cursor.close()
+            conn.close()
+
+
 if __name__ == "__main__":
     import uvicorn
+
     port = int(os.environ.get("PORT", 10000))
     uvicorn.run(app, host="0.0.0.0", port=port)
