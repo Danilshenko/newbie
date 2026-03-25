@@ -10,12 +10,11 @@ import random
 import smtplib
 from email.message import EmailMessage
 
-
 SENDER_EMAIL = "1509zii2008@gmail.com"
-SENDER_PASSWORD = "ycno tmuz zhsz ixbq"
+SENDER_PASSWORD = "ycno tmuz zhsz ixbq" 
 SECRET_KEY = os.environ.get("SECRET_KEY", "your-secret-key-123")
 ALGORITHM = "HS256"
-DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://user:pass@host:5432/dbname")
+DATABASE_URL = os.environ.get("DATABASE_URL") 
 
 app = FastAPI(redirect_slashes=True)
 
@@ -31,8 +30,8 @@ def get_db_connection():
         conn = psycopg2.connect(DATABASE_URL, sslmode="require")
         return conn
     except Exception as e:
-        print(f"Ошибка подключения к БД: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка подключения к БД")
+        print(f"CRITICAL: Ошибка подключения к БД: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка базы данных")
 
 def init_db():
     conn = None
@@ -51,16 +50,14 @@ def init_db():
             );
         """)
         conn.commit()
-        print(" База данных готова")
+        print("✅ Таблица пользователей проверена/создана")
     except Exception as e:
-        print(f" Ошибка инициализации базы: {e}")
+        print(f"❌ Ошибка инициализации: {e}")
     finally:
-        if conn:
-            conn.close()
+        if conn: conn.close()
 
 init_db()
 
-# --- УТИЛИТЫ ---
 def create_access_token(email: str):
     expire = datetime.utcnow() + timedelta(hours=24)
     to_encode = {"sub": email, "exp": expire}
@@ -69,10 +66,10 @@ def create_access_token(email: str):
 
 @app.get("/")
 async def home():
-    return {"status": "online", "message": "Backend is running"}
+    return {"status": "online", "message": "Backend is running on Render"}
 
 @app.post("/users")
-async def add_user(request: Request):
+async def register(request: Request):
     try:
         data = await request.json()
         u = str(data.get("username", "")).strip()
@@ -80,44 +77,44 @@ async def add_user(request: Request):
         e = str(data.get("email", "")).strip()
 
         if not u or not p or not e:
-            raise HTTPException(status_code=400, detail="Заполните все поля!")
+            raise HTTPException(status_code=400, detail="Заполните все поля")
 
-        verification_code = str(random.randint(1000, 9999))
+        code = str(random.randint(1000, 9999))
         conn = get_db_connection()
         cursor = conn.cursor()
 
         try:
             msg = EmailMessage()
-            msg.set_content(f"Ваш код подтверждения: {verification_code}")
+            msg.set_content(f"Ваш код подтверждения: {code}")
             msg["Subject"] = "Код подтверждения"
             msg["From"] = SENDER_EMAIL
             msg["To"] = e
 
-            with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-                smtp.login(SENDER_EMAIL, SENDER_PASSWORD)
-                smtp.send_message(msg)
-
+            with smtplib.SMTP("smtp.gmail.com", 587) as server:
+                server.starttls() 
+                server.login(SENDER_EMAIL, SENDER_PASSWORD)
+                server.send_message(msg)
 
             cursor.execute(
                 "INSERT INTO users (username, password, email, verification_code, is_active) VALUES (%s, %s, %s, %s, FALSE)",
-                (u, p, e, verification_code),
+                (u, p, e, code),
             )
             conn.commit()
-            return {"status": "success", "message": "Код отправлен на почту!"}
+            return {"status": "success", "message": "Код отправлен на email"}
 
         except psycopg2.errors.UniqueViolation:
             conn.rollback()
-            raise HTTPException(status_code=400, detail="Логин или почта уже заняты")
+            raise HTTPException(status_code=400, detail="Email или логин уже заняты")
         except Exception as err:
             conn.rollback()
-            print(f"Ошибка при регистрации: {err}")
-            raise HTTPException(status_code=400, detail=f"Ошибка: {str(err)}")
+            print(f"ОШИБКА СЕТИ ИЛИ ПОЧТЫ: {err}")
+            raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(err)}")
         finally:
             cursor.close()
             conn.close()
-    except Exception as e:
-        if isinstance(e, HTTPException): raise e
-        raise HTTPException(status_code=400, detail="Некорректный запрос")
+    except Exception as main_err:
+        if isinstance(main_err, HTTPException): raise main_err
+        raise HTTPException(status_code=400, detail="Неверные данные")
 
 @app.post("/login")
 async def login(request: Request):
@@ -132,12 +129,12 @@ async def login(request: Request):
         user = cursor.fetchone()
 
         if not user or user["password"] != password:
-            raise HTTPException(status_code=401, detail="Неверный логин или пароль")
+            raise HTTPException(status_code=401, detail="Неверные данные входа")
 
-        if not user.get("is_active"):
+        if not user["is_active"]:
             return {
                 "status": "pending_verification",
-                "message": "Подтвердите почту",
+                "message": "Нужно подтвердить почту",
                 "email": email
             }
 
@@ -148,7 +145,7 @@ async def login(request: Request):
         conn.close()
 
 @app.post("/verify-email")
-async def verify_email(request: Request):
+async def verify(request: Request):
     data = await request.json()
     email = data.get("email")
     code = str(data.get("code"))
@@ -171,19 +168,36 @@ async def verify_email(request: Request):
         )
         conn.commit()
 
-
         token = create_access_token(email)
         return {
             "status": "success",
-            "message": "Почта подтверждена!",
             "access_token": token,
-            "token_type": "bearer"
+            "token_type": "bearer",
+            "message": "Почта подтверждена!"
         }
     finally:
         cursor.close()
         conn.close()
 
+@app.get("/me")
+async def get_me(request: Request):
+    auth = request.headers.get("Authorization")
+    if not auth or not auth.startswith("Bearer "):
+        raise HTTPException(status_code=401)
+    
+    token = auth.split(" ")[1]
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email = payload.get("sub")
+        
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor.execute("SELECT username, email, basket FROM users WHERE email = %s", (email,))
+        return {"status": "success", "data": cursor.fetchone()}
+    except:
+        raise HTTPException(status_code=401, detail="Токен истек или неверен")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=10000)
+    port = int(os.environ.get("PORT", 10000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
