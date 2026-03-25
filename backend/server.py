@@ -10,14 +10,14 @@ import random
 import smtplib
 from email.message import EmailMessage
 
-# Настройки
+
 SENDER_EMAIL = "1509zii2008@gmail.com"
 SENDER_PASSWORD = "ycno tmuz zhsz ixbq"
 SECRET_KEY = os.environ.get("SECRET_KEY", "your-secret-key-123")
 ALGORITHM = "HS256"
 DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://user:pass@host:5432/dbname")
 
-app = FastAPI()
+app = FastAPI(redirect_slashes=True)
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,24 +26,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# БД
 def get_db_connection():
     try:
         conn = psycopg2.connect(DATABASE_URL, sslmode="require")
         return conn
     except Exception as e:
-        print(f"Ошибка базы: {e}")
+        print(f"Ошибка подключения к БД: {e}")
         raise HTTPException(status_code=500, detail="Ошибка подключения к БД")
-
 
 def init_db():
     conn = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
                 username TEXT NOT NULL UNIQUE,
@@ -53,34 +49,27 @@ def init_db():
                 verification_code TEXT,
                 is_active BOOLEAN DEFAULT FALSE
             );
-        """
-        )
+        """)
         conn.commit()
-        print("База данных проверена")
+        print(" База данных готова")
     except Exception as e:
-        print(f"Ошибка инициализации базы: {e}")
+        print(f" Ошибка инициализации базы: {e}")
     finally:
         if conn:
             conn.close()
 
-
 init_db()
 
-
-# ТОКЕН
-def create_access_token(username: str):
+# --- УТИЛИТЫ ---
+def create_access_token(email: str):
     expire = datetime.utcnow() + timedelta(hours=24)
-    to_encode = {"sub": username, "exp": expire}
+    to_encode = {"sub": email, "exp": expire}
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-
-# РУТЫ
 
 
 @app.get("/")
 async def home():
     return {"status": "online", "message": "Backend is running"}
-
 
 @app.post("/users")
 async def add_user(request: Request):
@@ -99,7 +88,7 @@ async def add_user(request: Request):
 
         try:
             msg = EmailMessage()
-            msg.set_content(f"Ваш код: {verification_code}")
+            msg.set_content(f"Ваш код подтверждения: {verification_code}")
             msg["Subject"] = "Код подтверждения"
             msg["From"] = SENDER_EMAIL
             msg["To"] = e
@@ -108,24 +97,27 @@ async def add_user(request: Request):
                 smtp.login(SENDER_EMAIL, SENDER_PASSWORD)
                 smtp.send_message(msg)
 
+
             cursor.execute(
                 "INSERT INTO users (username, password, email, verification_code, is_active) VALUES (%s, %s, %s, %s, FALSE)",
                 (u, p, e, verification_code),
             )
             conn.commit()
-            return {"status": "success", "message": "Код отправлен!"}
+            return {"status": "success", "message": "Код отправлен на почту!"}
 
-        except Exception as internal_err:
-            print(f"КРИТИЧЕСКАЯ ОШИБКА: {internal_err}")
+        except psycopg2.errors.UniqueViolation:
             conn.rollback()
-            raise HTTPException(status_code=400, detail=f"Ошибка: {str(internal_err)}")
+            raise HTTPException(status_code=400, detail="Логин или почта уже заняты")
+        except Exception as err:
+            conn.rollback()
+            print(f"Ошибка при регистрации: {err}")
+            raise HTTPException(status_code=400, detail=f"Ошибка: {str(err)}")
         finally:
             cursor.close()
             conn.close()
-
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
+        if isinstance(e, HTTPException): raise e
+        raise HTTPException(status_code=400, detail="Некорректный запрос")
 
 @app.post("/login")
 async def login(request: Request):
@@ -145,8 +137,8 @@ async def login(request: Request):
         if not user.get("is_active"):
             return {
                 "status": "pending_verification",
-                "message": "Необходимо подтвердить почту",
-                "email": email,
+                "message": "Подтвердите почту",
+                "email": email
             }
 
         token = create_access_token(email)
@@ -155,19 +147,18 @@ async def login(request: Request):
         cursor.close()
         conn.close()
 
-
 @app.post("/verify-email")
 async def verify_email(request: Request):
     data = await request.json()
     email = data.get("email")
-    code = data.get("code")
+    code = str(data.get("code"))
 
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
         cursor.execute(
             "SELECT * FROM users WHERE email = %s AND verification_code = %s",
-            (email, str(code)),
+            (email, code),
         )
         user = cursor.fetchone()
 
@@ -180,85 +171,14 @@ async def verify_email(request: Request):
         )
         conn.commit()
 
-        # ПОЛУЧЕНИЕ ТОКЕНА ПОСЛЕ ВЕРИФИКАЦИИ
-        token = create_access_token(email)
 
+        token = create_access_token(email)
         return {
             "status": "success",
             "message": "Почта подтверждена!",
             "access_token": token,
-            "token_type": "bearer",
+            "token_type": "bearer"
         }
-    finally:
-        cursor.close()
-        conn.close()
-
-
-@app.post("/favorites")
-async def toggle_favorite(request: Request):
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Авторизуйтесь")
-
-    try:
-        item_data = await request.json()
-        product_id = item_data.get("id")
-        token = auth_header.split(" ")[1]
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_email = payload.get("sub")
-    except:
-        raise HTTPException(status_code=400, detail="Ошибка авторизации или данных")
-
-    conn = get_db_connection()
-    cursor = conn.cursor(cursor_factory=RealDictCursor)
-    try:
-        cursor.execute("SELECT basket FROM users WHERE email = %s", (user_email,))
-        result = cursor.fetchone()
-
-        basket = result["basket"] if result and result["basket"] else []
-        if isinstance(basket, str):
-            basket = json.loads(basket)
-
-        existing = next((i for i in basket if i.get("id") == product_id), None)
-        if existing:
-            basket = [i for i in basket if i.get("id") != product_id]
-            msg = "Удалено"
-        else:
-            item_data["added_at"] = datetime.now().isoformat()
-            basket.append(item_data)
-            msg = "Добавлено"
-
-        cursor.execute(
-            "UPDATE users SET basket = %s WHERE email = %s",
-            (json.dumps(basket), user_email),
-        )
-        conn.commit()
-        return {"status": "success", "message": msg, "favorites": basket}
-    finally:
-        cursor.close()
-        conn.close()
-
-
-@app.get("/me")
-async def get_me(request: Request):
-    auth_header = request.headers.get("Authorization")
-    if not auth_header:
-        raise HTTPException(status_code=401)
-
-    conn = get_db_connection()
-    cursor = conn.cursor(cursor_factory=RealDictCursor)
-    try:
-        token = auth_header.split(" ")[1]
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_email = payload.get("sub")
-
-        cursor.execute(
-            "SELECT username, email, basket FROM users WHERE email = %s", (user_email,)
-        )
-        user_data = cursor.fetchone()
-        return {"status": "success", "data": user_data}
-    except:
-        raise HTTPException(status_code=401, detail="Невалидный токен")
     finally:
         cursor.close()
         conn.close()
@@ -266,5 +186,4 @@ async def get_me(request: Request):
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run(app, host="0.0.0.0", port=10000)
