@@ -1,0 +1,183 @@
+body {
+  margin: 0;
+  font-family: 'Inter', Arial, sans-serif;
+  background: linear-gradient(180deg, #99D0EF, #FFFFFF);
+}
+
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  padding: 20px;
+}
+
+.card {
+  width: 100%;
+  max-width: 500px;
+  background: linear-gradient(to bottom, #C4F2FF 0%, #FFFFFF 60%);
+  border-radius: 30px;
+  padding: 30px;
+  box-shadow: 10px 10px 30px rgba(0,0,0,0.1), -5px -5px 20px rgba(255,255,255,0.5);
+}
+
+.header {
+  display: flex;
+  align-items: center; /* Центрирует аватарку и текст по вертикали */
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.profil-avatar {
+  position: relative;
+  flex-shrink: 0; /* Чтобы аватарка не сжималась */
+  width: 80px;
+  height: 80px;
+}
+
+.profil-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid white;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.online {
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  width: 16px;
+  height: 16px;
+  background: #4ade80;
+  border: 3px solid white;
+  border-radius: 50%;
+  z-index: 2;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-info h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.user-info p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.badge {
+  font-size: 11px;
+  background: #2d2d2d;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+  width: fit-content;
+  margin-top: 5px;
+}
+
+.edit-btn {
+  margin-left: auto;
+  background: #2d2d2d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.edit-btn:hover {
+  transform: scale(1.05);
+  background: #000;
+}
+
+.block {
+  background: rgba(196, 242, 255, 0.4);
+  padding: 20px;
+  border-radius: 20px;
+  margin-top: 15px;
+}
+
+.block h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.block p {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #444;
+}
+
+.stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.stat {
+  background: white;
+  padding: 12px;
+  flex: 1;
+  text-align: center;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.stat h4 {
+  margin: 0;
+  font-size: 18px;
+  color: #1a1a1a;
+}
+
+.stat p {
+  margin: 2px 0 0 0;
+  font-size: 12px;
+  color: #888;
+}
+
+.setting-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  background: #2d2d2d;
+  color: white;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.setting-btn:hover {
+  background: #444;
+}
+
+.logout {
+  background: #fff0f0;
+  color: #ff4d4d;
+  border: 1px solid #ffcccc;
+}
+
+.logout:hover {
+  background: #ffe0e0;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid rgba(0,0,0,0.05);
+  margin: 20px 0;
+}

@@ -5,6 +5,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Register from './Component/RegisterRequest/Register';
 import Login from './Component/LoginRequest/Login'
 import Main from './Component/Main/Main'
+import Verify from './Component/Verify/Verify';
+import Profile from './Component/Profile/Profile';
+import ProductPage from './Component/ProductPage/ProductPage';
 
 function App() {
   return (
@@ -14,7 +17,11 @@ function App() {
         <Route path='/' element={<Navigate to='/login'/>}/>
         <Route path='/register' element={<Register/>}/>
         <Route path='/login' element={<Login/>}/>
-        <Route path='/profile' element={<Main/>}/>
+        <Route path='/main' element={<Main/>}/>
+        <Route path='/verify' element={<Verify/>}/>
+        <Route path='/profile' element={<Profile/>}/>
+        <Route path='/cardspage' element={<ProductPage/>}/>
+
       </Routes>
         <ToastContainer 
           position="top-right" 

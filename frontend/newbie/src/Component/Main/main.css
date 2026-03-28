@@ -1,74 +1,11 @@
-.main-block{
-    position: relative; 
-    min-height: 100vh;
+main{
     display: flex;
-    justify-content: center;
-    align-items: center;
+    gap: 15px;
 }
-.click-block{
-    display: flex;
-    justify-content: center;
-    align-items:center;
-    flex-direction: column;
-    width: 570px;
-    height: 620px;
-    background: linear-gradient(to bottom,  #C4F2FF 0%,  #FFFFFF 60%);
-    border-radius: 60px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.50);
-    transition: 0.2s ease;
-
-}
-.profile-block {
-    position: absolute;
-    top: 20px;     
-    right: 80px;  
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    text-decoration: none;
-    font-family: 'Geist', sans-serif;
-    font-weight: 700;
-    color: #000;
-    cursor: pointer;
-    background-color: transparent;
-    border: none;
-}
-.text-username{
-    font-size: 25px;
-
-}
-.icon-profile{
-    width: 40px;
-    height: 40px;
-}
-.top-text{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 40px;
-    font-family: 'Geist', sans-serif;
-    font-weight: 700;
-}
-.point-count{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 40px;
-}
-.click-button{
-    font-size: 40px;
-    border: 1px solid black ;
-    background-color: black;
-    font-family: 'Geist', sans-serif;
-    font-weight: 600;
-    color: #fff;
-    width: 380px;
-    height: 60px;
-    border-radius: 15px;
-}
-.click-button:hover{
-    background-color: #2D2D2D;
-}
-.click-button:active{
-    transform: scale(0.98);
+.column-cards{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 25px; 
+    width: 100%;
+    padding: 20px 0;
 }

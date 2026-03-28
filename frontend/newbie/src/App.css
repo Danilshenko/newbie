@@ -22,3 +22,15 @@
 .Toastify__toast-container {
   z-index: 9999;
 }
+
+body{
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #99D0EF, #FFFFFF );
+  width: 100vw;
+  height: 100vh;
+  padding: 0 180px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
