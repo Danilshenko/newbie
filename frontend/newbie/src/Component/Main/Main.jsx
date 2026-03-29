@@ -11,6 +11,10 @@ function Main() {
   const [username, setUsername] = useState("");
   const [countLength, setCountLength] = useState(0);
 
+  function addCountCards(){
+    setCountLength(countLength + 1)
+  }
+
   useEffect(() => {
     async function getUsersData() {
       const token = localStorage.getItem("token");
@@ -40,7 +44,10 @@ function Main() {
 
   return (
   <>
-      <Header/>
+      <Header 
+      quality={countLength}
+      username={username}
+      />
       <main>
       <SideBar/>
       <section className="column-cards">
@@ -51,6 +58,7 @@ function Main() {
           description={item.description}
           price={item.price}
           reviews={item.reviews}
+          addCountCards={addCountCards}
           />
         ))}
       </section>

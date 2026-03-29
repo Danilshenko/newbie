@@ -2,10 +2,14 @@ import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import "./productcards.css";
 
-function ProductCards({ category, title, description, price, reviews }) {
-  const navigate = useNavigate()
+function ProductCards({ addCountCards, category, title, description, price, reviews }) {
+  let navigate = useNavigate();
+  function clickAdd(e){
+    e.stopPropagation()
+    addCountCards()
+  }
   return (
-    <div className="product-card" onClick={() => navigate=("/cardspage")}>
+    <div className="product-card" onClick={() => navigate("/cardspage")}>
       <span className="product-card__badge">{category || "New"}</span>
       <div className="product-card__image-container">
         <img
@@ -23,7 +27,7 @@ function ProductCards({ category, title, description, price, reviews }) {
         </div>
         <div className="product-card__footer">
           <span className="product-card__price">{price}₴</span>
-          <button className="product-card__add-btn" onClick={(e) => e.stopPropagation()}>Add to Cart</button>
+          <button className="product-card__add-btn" onClick={(e) => clickAdd(e)}>Add to Cart</button>
         </div>
       </div>
     </div>
