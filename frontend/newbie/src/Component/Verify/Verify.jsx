@@ -101,7 +101,7 @@ function Verify() {
           Confirm Code
         </button>
         <div className="resend-link">
-          Didn't get the code? <a href="#">Resend</a>
+          Didn't get the code? <a href="/">Resend</a>
         </div>
       </div>
     </div>

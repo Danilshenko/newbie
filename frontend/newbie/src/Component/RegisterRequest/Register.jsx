@@ -52,7 +52,7 @@ function Register() {
         localStorage.setItem('username', username);
         localStorage.setItem('email', email);
         toast.success("Register Compited");
-        navigator = "/verify";
+        window.location.href =  "/verify";
       } else {
         toast.error("A user with this nickname or email already exists.");
       }
@@ -74,7 +74,7 @@ function Register() {
         </div>
         <div className="form-block">
           <div className="input-group">
-            <img src="/icons/User.svg" alt="icon" />
+            <img src="/icons/User.svg" alt="icon user" />
             <input
               className="username-form"
               onChange={changeUsername}
@@ -85,7 +85,7 @@ function Register() {
             />
           </div>
           <div className="input-group">
-            <img src="/icons/Email.svg" alt="icon" />
+            <img src="/icons/Email.svg" alt="icon email" />
             <input
               className="email-form"
               onChange={changeEmail}
@@ -96,7 +96,7 @@ function Register() {
             />
           </div>
           <div className="input-group">
-            <img src="/icons/Password.svg" alt="icon" />
+            <img src="/icons/Password.svg" alt="icon password" />
             <input
               className="password-form"
               type="password"

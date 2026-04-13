@@ -1,14 +1,12 @@
-import {  useState } from 'react';
+
 import './cartitem.css'
 
 function CartItem({ quality, sumQuality, img, title, price}) {
 
-
-
   return (
     <>
       <div className="card-item__content">
-        <img className="card-item__img" src={img} alt="img"/>
+        <img className="card-item__img" src={img} alt="Cart img"/>
         <div className="product-item-card__footer">
             <h4 className="card-item__title">{title}</h4>
             <span className="card-item__price">{price}₴</span>

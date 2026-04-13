@@ -6,7 +6,7 @@ function Profile() {
       <div className="card">
         <div className="header-info">
           <div className="profil-avatar">
-            <img src="https://picsum.photos/300/200" alt="avatar" />
+            <img src="https://picsum.photos/300/200" alt="avatar icon" />
             <span className="online"></span>
           </div>
           <div className="user-info">
