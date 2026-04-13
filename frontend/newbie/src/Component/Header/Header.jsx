@@ -15,7 +15,7 @@ function Header({quality, username, onCartClick}){
             <span className="header__cart-count">{quality}</span>
           </div>
           <Link className="user-profile" to='/profile'>
-            <img className="avatar" src="https://via.placeholder.com/40" alt="Avatar"/>
+            <img className="avatar" src="https://via.placeholder.com/40" alt="Avatar icon"/>
             <span className="username">{username}</span>
             <span className="arrow">▼</span>
           </Link>

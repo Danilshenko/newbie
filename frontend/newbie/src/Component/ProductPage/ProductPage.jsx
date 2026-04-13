@@ -1,11 +1,8 @@
 import { useState } from "react";
 import "./productpage.css";
 
-function ProductPage({ product }) {
+function ProductPage({}) {
   const [quality, setQuality] = useState(1);
-  // if(!product){
-  //     return <div className="product-page-loading">Loading product details...</div>;
-  // }
   return (
     <div className="product-page">
       <div className="product-page__container">
@@ -13,24 +10,24 @@ function ProductPage({ product }) {
           <div className="product-page__main-image-wrapper">
             <img
               src="https://picsum.photos/600/500"
-              alt="Product"
+              alt="Product img"
               className="product-page__main-img"
             />
           </div>
           <div className="product-page__thumbnails">
             <img
               src="https://picsum.photos/100/100?1"
-              alt="thumb"
+              alt="img thumb"
               className="product-page__thumb"
             />
             <img
               src="https://picsum.photos/100/100?2"
-              alt="thumb"
+              alt="img thumb"
               className="product-page__thumb"
             />
             <img
               src="https://picsum.photos/100/100?3"
-              alt="thumb"
+              alt="img thumb"
               className="product-page__thumb"
             />
           </div>
