@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./productpage.css";
 
-function ProductPage({}) {
+function ProductPage() {
   const [quality, setQuality] = useState(1);
   return (
     <div className="product-page">
@@ -10,7 +10,7 @@ function ProductPage({}) {
           <div className="product-page__main-image-wrapper">
             <img
               src="https://picsum.photos/600/500"
-              alt="Product img"
+              alt="product"
               className="product-page__main-img"
             />
           </div>

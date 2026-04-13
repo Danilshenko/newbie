@@ -12,6 +12,7 @@ function Cart({ cartId, isOpen, onClose}){
   const qualityTotal = cartId.reduce((acc, result) => acc + result.quality, 0);
   const resultPrice = cartId.reduce((acc, result) => acc + result.price * quality, 0);
 
+  console.log(resultPrice)
   // function sumPrice(item){
   //   const total = setQuality(item.reduce((acc, total) => acc + total.quality ,0))
   //   const result = setPrice(item.reduce((acc, result) => acc + result.price * result.quality, 0))
@@ -30,7 +31,7 @@ function Cart({ cartId, isOpen, onClose}){
           ))}
         </div>
         <div className="cart-footer">
-          <span className="cart-footer__price">Price: {resultPrice}₴</span>
+          <span className="cart-footer__price">Price: {qualityTotal}₴</span>
           <button className="cart-footer__btn">Proceed to Checkout</button>
         </div>
       </div>
