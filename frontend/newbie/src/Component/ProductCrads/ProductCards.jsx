@@ -15,7 +15,7 @@ function ProductCards({ id, clickId, addCountCards, category, title, img, descri
       <div className="product-card__image-container">
         <img
           src={img}
-          alt='photo cards'
+          alt={title}
           className="product-card__img"
         />
       </div>
